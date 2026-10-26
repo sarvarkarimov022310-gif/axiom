@@ -1,0 +1,16 @@
+{
+  "name": "Axiom AI — Matematik yordamchi",
+  "short_name": "Axiom AI",
+  "description": "Oflayn matematik yordamchi: tenglama, hosila, integral, grafik va boshqalar.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1b1d33",
+  "theme_color": "#1b1d33",
+  "lang": "uz",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

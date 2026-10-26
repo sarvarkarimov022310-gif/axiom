@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Axiom AI — Matematik yordamchi</title>
+<meta name="theme-color" content="#1b1d33" id="tema-rang">
+<meta name="description" content="Oflayn matematik yordamchi">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Axiom AI">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root {
+  color-scheme: dark;
+  --bg-top: #1b1d33; --bg-bottom: #2e2446; --panel: #2a2a3d; --text: #cdd6f4;
+  --user: #3a4f8a; --axiom: #34365c; --kok: #89b4fa; --yashil: #a6e3a1; --sariq: #f9e2af;
+  --pembe: #f5c2e7; --qizil: #f38ba8; --firoza: #94e2d5; --toq: #45475a; --toq-hover: #585b70;
+  --gray: #9399b2; --plot-bg: #171827; --plot-grid: #2c2f4a; --plot-axis: #9399b2;
+  --fs: 16px;
+  --mono: ui-monospace, "SF Mono", Consolas, Menlo, "Roboto Mono", monospace;
+}
+:root[data-tema="light"] {
+  color-scheme: light;
+  --bg-top: #e8ecf6; --bg-bottom: #d6dcee; --panel: #e1e5ee; --text: #2e3350;
+  --user: #c4d6fb; --axiom: #fafbfe; --kok: #1e66f5; --yashil: #2f8f2f; --sariq: #9a5b00;
+  --pembe: #a8328f; --qizil: #d20f39; --firoza: #0f8a8a; --toq: #c5cad8; --toq-hover: #b2b8ca;
+  --gray: #5c6078; --plot-bg: #ffffff; --plot-grid: #dde1ee; --plot-axis: #5c6078;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; }
+body {
+  display: flex; flex-direction: column; height: 100dvh;
+  background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding-top: env(safe-area-inset-top, 0px); overscroll-behavior: none;
+}
+header { display: flex; align-items: center; gap: 6px; padding: 8px 10px 6px; }
+header .nom { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; font-weight: 700; font-size: 17px; color: var(--kok); white-space: nowrap; }
+header .nom img { width: 28px; height: 28px; border-radius: 7px; }
+.tugma {
+  border: 0; border-radius: 8px; background: var(--toq); color: var(--text); font: 700 14px system-ui, sans-serif;
+  min-width: 38px; height: 38px; padding: 0 10px; cursor: pointer;
+}
+.tugma:active { background: var(--toq-hover); }
+#chat { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 6px 0 10px; -webkit-overflow-scrolling: touch; }
+.pufak {
+  max-width: 90%; margin: 5px 10px; padding: 9px 13px 10px; border-radius: 14px; font-size: var(--fs);
+  line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text;
+}
+.pufak .kim { display: block; font-size: 0.82em; font-weight: 700; margin-bottom: 2px; }
+.siz { align-self: flex-end; background: var(--user); }
+.siz .kim { color: var(--kok); }
+.axiom { align-self: flex-start; background: var(--axiom); }
+.axiom .kim { color: var(--yashil); }
+.axiom.suhbat .matn { color: var(--pembe); }
+.axiom.natija .matn { color: var(--sariq); font-family: var(--mono); font-size: 0.95em; }
+.axiom.xato .matn { color: var(--qizil); }
+.axiom.kutish .matn { color: var(--gray); font-style: italic; }
+canvas.graf { display: block; margin-top: 8px; border-radius: 8px; max-width: 100%; }
+#pastki { padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(0,0,0,0.12); }
+#namunalar, #belgilar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; }
+#namunalar::-webkit-scrollbar, #belgilar::-webkit-scrollbar { display: none; }
+.chip { flex: 0 0 auto; border: 0; border-radius: 16px; padding: 7px 13px; font: 700 13px system-ui, sans-serif; color: #1e1e2e; cursor: pointer; }
+.chip:active { filter: brightness(1.15); }
+.belgi { flex: 0 0 auto; border: 0; border-radius: 8px; min-width: 40px; height: 36px; background: var(--toq); color: var(--text); font: 600 16px var(--mono); cursor: pointer; }
+.belgi:active { background: var(--toq-hover); }
+#qator { display: flex; gap: 8px; }
+#kirish {
+  flex: 1; min-width: 0; height: 46px; border: 0; border-radius: 12px; padding: 0 14px; font-size: 16px;
+  background: var(--panel); color: var(--text); outline: none;
+}
+#yubor { border: 0; border-radius: 12px; height: 46px; padding: 0 18px; background: var(--yashil); color: #1e1e2e; font: 700 15px system-ui, sans-serif; cursor: pointer; }
+:root[data-tema="light"] #yubor { color: #fff; }
+#yubor:disabled { opacity: 0.5; }
+/* yuklanish oynasi */
+#yuklash { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom)); padding: 24px; text-align: center; }
+#yuklash img { width: 96px; height: 96px; border-radius: 22px; }
+#yuklash h1 { margin: 0; font-size: 30px; color: var(--kok); }
+#yuklash .osti { color: var(--gray); font-size: 15px; }
+.chiziq { width: min(320px, 80vw); height: 8px; background: var(--toq); border-radius: 4px; overflow: hidden; }
+.chiziq i { display: block; height: 100%; width: 10%; background: var(--yashil); border-radius: 4px; transition: width 0.6s ease; }
+#yuklash .holat { font-size: 15px; min-height: 1.4em; }
+#yuklash .eslatma { color: var(--gray); font-size: 13px; max-width: 320px; line-height: 1.4; }
+#yuklash button { margin-top: 6px; }
+/* ma'lumot oynasi */
+#malumot { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; background: var(--bg-top); padding-top: env(safe-area-inset-top, 0px); }
+#malumot.ochiq { display: flex; }
+#malumot .tepa { display: flex; gap: 6px; padding: 8px 10px; overflow-x: auto; align-items: center; }
+#malumot .tepa .yop { margin-left: auto; }
+#malumot .tab { flex: 0 0 auto; }
+#malumot .tab.faol { background: var(--kok); color: #fff; }
+#malumot .ichki { flex: 1; overflow-y: auto; padding: 8px 16px calc(20px + env(safe-area-inset-bottom, 0px)); font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+#malumot .b { color: var(--kok); font-weight: 700; }
+#malumot .k { color: var(--sariq); font-family: var(--mono); font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="yuklash">
+  <img src="icon-512.png" alt="Axiom AI">
+  <h1>Axiom AI</h1>
+  <div class="osti">Matematik yordamchi</div>
+  <div class="chiziq"><i id="foiz"></i></div>
+  <div class="holat" id="holat">Yuklanmoqda…</div>
+  <div class="eslatma" id="eslatma">Birinchi ochilishda internet kerak (taxminan 30–40 MB yuklanadi). Keyingi safar internetsiz ham ishlaydi.</div>
+  <button class="tugma" id="qayta" style="display:none">Qayta urinish</button>
+</div>
+
+<header>
+  <div class="nom"><img src="icon-192.png" alt=""><span>Axiom AI</span></div>
+  <button class="tugma" id="kichik" title="Yozuvni kichraytirish">A-</button>
+  <button class="tugma" id="katta" title="Yozuvni kattalashtirish">A+</button>
+  <button class="tugma" id="tema" title="Yorug' / qorong'u">☀</button>
+  <button class="tugma" id="info" title="Ma'lumot">ⓘ</button>
+  <button class="tugma" id="tozala" title="Chatni tozalash">✕</button>
+</header>
+
+<div id="chat" aria-live="polite"></div>
+
+<div id="pastki">
+  <div id="namunalar"></div>
+  <div id="belgilar"></div>
+  <div id="qator">
+    <input id="kirish" type="text" placeholder="Misolni yozing…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send">
+    <button id="yubor">Yuborish</button>
+  </div>
+</div>
+
+<div id="malumot">
+  <div class="tepa">
+    <button class="tugma tab faol" data-tab="qollanma">Qo'llanma</button>
+    <button class="tugma tab" data-tab="imkoniyatlar">Imkoniyatlar</button>
+    <button class="tugma tab" data-tab="haqida">Dastur haqida</button>
+    <button class="tugma tab" data-tab="ornatish">O'rnatish</button>
+    <button class="tugma yop" id="yop">Yopish</button>
+  </div>
+  <div class="ichki" id="ichki"></div>
+</div>
+
+<script>
+"use strict";
+// ---------- Sozlamalar ----------
+const NAMUNALAR = [
+  ["Tenglama", "x^2-5x+6=0", "#89b4fa"], ["Hosila", "hosila x^3+2x", "#a6e3a1"], ["Integral", "integral 2x", "#f9e2af"],
+  ["Limit", "limit x->0 sin(x)/x", "#f5c2e7"], ["Matritsa", "det [[1,2],[3,4]]", "#94e2d5"], ["Tizim", "tizim: x+y=5, x-y=1", "#f38ba8"],
+  ["Grafik", "grafik x^2", "#fab387"], ["Bosqich", "bosqich x^2-5x+6=0", "#cba6f7"], ["Ajrat", "ajrat x^2-5x+6", "#f2cdcd"],
+  ["Qavs och", "och (x+2)^3", "#f5e0dc"], ["EKUB/EKUK", "ekub va ekuk 12 18", "#b5e8e0"], ["Kasr", "1/2 + 3/4", "#f9e2af"],
+  ["Foiz", "200 ning 15%", "#a6e3a1"], ["Birlik", "5 km necha metr", "#89dceb"], ["Geometriya", "doira yuzi r=5", "#fab387"],
+  ["Sanoq", "25 ikkilik", "#f5c2e7"]
+];
+const BELGILAR = ["^", "(", ")", "/", "*", "+", "-", "=", "x", "y", "%", ".", ",", ":", "[", "]", "<", ">", "sqrt(", "pi"];
+const HISOBLASH_VAQTI = 30000;
+
+const $ = (id) => document.getElementById(id);
+const chat = $("chat"), kirish = $("kirish"), yubor = $("yubor");
+let worker = null, tayyor = false, soNom = 0, qaytaIshga = false;
+const kutayotgan = new Map();
+
+function saqla(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function oqi(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+// ---------- Mavzu va yozuv kattaligi ----------
+function temaQo_y(t) {
+  if (t === "light") document.documentElement.setAttribute("data-tema", "light");
+  else document.documentElement.removeAttribute("data-tema");
+  $("tema").textContent = t === "light" ? "☾" : "☀";
+  $("tema-rang").setAttribute("content", t === "light" ? "#e8ecf6" : "#1b1d33");
+  saqla("axiom_tema", t);
+  document.querySelectorAll("canvas.graf").forEach((c) => { if (c._g) grafikChiz(c, c._g); });
+}
+let shrift = parseInt(oqi("axiom_shrift") || "16", 10);
+function shriftQo_y(v) {
+  shrift = Math.max(12, Math.min(26, v));
+  document.documentElement.style.setProperty("--fs", shrift + "px");
+  saqla("axiom_shrift", String(shrift));
+}
+temaQo_y(oqi("axiom_tema") === "light" ? "light" : "dark");
+shriftQo_y(shrift);
+$("tema").onclick = () => temaQo_y(document.documentElement.getAttribute("data-tema") === "light" ? "dark" : "light");
+$("kichik").onclick = () => shriftQo_y(shrift - 2);
+$("katta").onclick = () => shriftQo_y(shrift + 2);
+
+// ---------- Chat ----------
+function pastga() { chat.scrollTop = chat.scrollHeight; }
+
+function xabarQo_sh(kim, matn, tur) {
+  const d = document.createElement("div");
+  d.className = "pufak " + (kim === "Siz" ? "siz" : "axiom " + (tur || "suhbat"));
+  const k = document.createElement("span"); k.className = "kim"; k.textContent = kim;
+  const m = document.createElement("span"); m.className = "matn"; m.textContent = matn;
+  d.appendChild(k); d.appendChild(m);
+  chat.appendChild(d); pastga();
+  return d;
+}
+
+function grafikChiz(cnv, g) {
+  const css = getComputedStyle(document.documentElement);
+  const C = (n) => css.getPropertyValue(n).trim();
+  const dpr = window.devicePixelRatio || 1, cw = cnv._cw, ch = cnv._ch;
+  cnv.width = Math.round(cw * dpr); cnv.height = Math.round(ch * dpr);
+  cnv.style.width = cw + "px"; cnv.style.height = ch + "px";
+  const x = cnv.getContext("2d");
+  x.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const L = 44, R = 12, T = 10, B = 24, pw = cw - L - R, ph = ch - T - B;
+  const px = (v) => L + (v - g.a) / (g.b - g.a) * pw;
+  const py = (v) => T + (g.yuqori - v) / (g.yuqori - g.past) * ph;
+  x.fillStyle = C("--plot-bg"); x.fillRect(L, T, pw, ph);
+  x.font = "10px " + C("--mono"); x.fillStyle = C("--gray"); x.strokeStyle = C("--plot-grid"); x.lineWidth = 1;
+  x.textAlign = "center"; x.textBaseline = "top";
+  g.xt.forEach(([t, s]) => { x.beginPath(); x.moveTo(px(t), T); x.lineTo(px(t), T + ph); x.stroke(); x.fillText(s, px(t), T + ph + 5); });
+  x.textAlign = "right"; x.textBaseline = "middle";
+  g.yt.forEach(([t, s]) => { x.beginPath(); x.moveTo(L, py(t)); x.lineTo(L + pw, py(t)); x.stroke(); x.fillText(s, L - 5, py(t)); });
+  x.strokeStyle = C("--plot-axis"); x.lineWidth = 2;
+  if (g.a <= 0 && 0 <= g.b) { x.beginPath(); x.moveTo(px(0), T); x.lineTo(px(0), T + ph); x.stroke(); }
+  if (g.past <= 0 && 0 <= g.yuqori) { x.beginPath(); x.moveTo(L, py(0)); x.lineTo(L + pw, py(0)); x.stroke(); }
+  x.save(); x.beginPath(); x.rect(L, T, pw, ph); x.clip();
+  const ranglar = [C("--sariq"), C("--firoza"), C("--pembe"), C("--yashil")];
+  x.lineWidth = 2; x.lineCap = "round"; x.lineJoin = "round";
+  g.chiziqlar.forEach((segmentlar, i) => {
+    x.strokeStyle = ranglar[i % ranglar.length];
+    segmentlar.forEach((s) => {
+      x.beginPath();
+      s.forEach((p, j) => { if (j === 0) x.moveTo(px(p[0]), py(p[1])); else x.lineTo(px(p[0]), py(p[1])); });
+      x.stroke();
+    });
+  });
+  x.restore();
+  x.strokeStyle = C("--toq"); x.lineWidth = 1; x.strokeRect(L, T, pw, ph);
+  x.font = "bold 11px " + C("--mono"); x.textAlign = "left"; x.textBaseline = "top";
+  g.nomlar.forEach((n, i) => { x.fillStyle = ranglar[i % ranglar.length]; x.fillText(n, L + 8, T + 6 + i * 15); });
+}
+
+function grafikQo_sh(pufak, g) {
+  const cnv = document.createElement("canvas");
+  cnv.className = "graf";
+  cnv._cw = Math.max(240, Math.min(560, chat.clientWidth - 56));
+  cnv._ch = Math.round(cnv._cw * 0.62);
+  cnv._g = g;
+  pufak.appendChild(cnv);
+  grafikChiz(cnv, g);
+  pastga();
+}
+
+function xabarlarniKo_rsat(xabarlar) {
+  xabarlar.forEach((x) => {
+    const chiqar = () => { const p = xabarQo_sh("Axiom", x.matn, x.tur); if (x.grafik) grafikQo_sh(p, x.grafik); };
+    if (x.keyin) setTimeout(chiqar, 450); else chiqar();
+  });
+}
+
+// ---------- Python bilan aloqa ----------
+function hisobla(op, qiymatlar, vaqt) {
+  return new Promise((resolve, reject) => {
+    const id = ++soNom;
+    const taymer = setTimeout(() => { kutayotgan.delete(id); reject(new Error("vaqt")); }, vaqt || HISOBLASH_VAQTI);
+    kutayotgan.set(id, { resolve, reject, taymer });
+    worker.postMessage(Object.assign({ op, id }, qiymatlar));
+  });
+}
+
+function holatKo_rsat(matn, foiz) {
+  if (matn) $("holat").textContent = matn;
+  if (foiz) $("foiz").style.width = foiz + "%";
+}
+
+function ishchiniBoshla() {
+  tayyor = false;
+  yubor.disabled = true;
+  if (worker) { try { worker.terminate(); } catch (e) {} }
+  worker = new Worker("worker.js");
+  worker.onmessage = (ev) => {
+    const d = ev.data;
+    if (d.tur === "holat") holatKo_rsat(d.matn, d.foiz);
+    else if (d.tur === "tayyor") tayyorBo_ldi();
+    else if (d.tur === "boshlash_xatosi") boshlashXatosi(d.matn);
+    else if (d.tur === "javob") {
+      const k = kutayotgan.get(d.id);
+      if (!k) return;
+      kutayotgan.delete(d.id); clearTimeout(k.taymer);
+      if (d.hato) k.reject(new Error(d.hato)); else k.resolve(d.natija);
+    }
+  };
+  worker.onerror = () => boshlashXatosi("Python fayllarini yuklab bo'lmadi");
+}
+
+function boshlashXatosi(matn) {
+  $("yuklash").style.display = "flex";
+  holatKo_rsat("Yuklab bo'lmadi: " + matn);
+  $("eslatma").textContent = "Birinchi marta internetga ulanib oching: kerakli fayllar yuklab olinadi. Keyin internetsiz ishlaydi.";
+  $("qayta").style.display = "inline-block";
+}
+$("qayta").onclick = () => location.reload();
+
+async function tayyorBo_ldi() {
+  tayyor = true; yubor.disabled = false;
+  holatKo_rsat("Tayyor", 100);
+  setTimeout(() => { $("yuklash").style.display = "none"; kirish.focus({ preventScroll: true }); }, 250);
+  if (qaytaIshga) {
+    qaytaIshga = false;
+    xabarQo_sh("Axiom", "Axiom yana tayyor. Davom etamiz!", "suhbat");
+  } else if (!chat.children.length) {
+    try { xabarQo_sh("Axiom", await hisobla("salom", { soat: new Date().getHours() }), "suhbat"); }
+    catch (e) { xabarQo_sh("Axiom", "Salom! Qanday yordam bera olaman?", "suhbat"); }
+  }
+}
+
+async function xabarYubor() {
+  const matn = kirish.value.trim();
+  if (!matn || !tayyor) return;
+  kirish.value = "";
+  xabarQo_sh("Siz", matn);
+  yubor.disabled = true;
+  const kutish = xabarQo_sh("Axiom", "Hisoblayapman…", "kutish");
+  try {
+    const natija = await hisobla("javob", { matn });
+    kutish.remove();
+    xabarlarniKo_rsat(JSON.parse(natija));
+  } catch (e) {
+    kutish.remove();
+    if (e.message === "vaqt") {
+      xabarQo_sh("Axiom", "Bu misol juda uzoq hisoblandi, to'xtatdim. Soddaroq ko'rinishda yozib ko'ring. Qayta ishga tushyapman…", "xato");
+      qaytaIshga = true;
+      ishchiniBoshla();
+      yuklashniYashir();
+      return;
+    }
+    xabarQo_sh("Axiom", "Kechirasiz, bu misolni hisoblay olmadim.", "xato");
+  }
+  yubor.disabled = !tayyor;
+  kirish.focus({ preventScroll: true });
+}
+// qayta ishga tushirishda to'liq ekranli yuklash oynasini ko'rsatmaymiz
+function yuklashniYashir() { $("yuklash").style.display = "none"; }
+
+yubor.onclick = xabarYubor;
+kirish.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); xabarYubor(); } });
+$("tozala").onclick = () => { chat.innerHTML = ""; };
+
+// ---------- Namunalar va belgilar paneli ----------
+NAMUNALAR.forEach(([nom, namuna, rang]) => {
+  const b = document.createElement("button");
+  b.className = "chip"; b.textContent = nom; b.style.background = rang;
+  b.onclick = () => { kirish.value = namuna; kirish.focus(); };
+  $("namunalar").appendChild(b);
+});
+BELGILAR.forEach((s) => {
+  const b = document.createElement("button");
+  b.className = "belgi"; b.textContent = s;
+  b.addEventListener("pointerdown", (e) => e.preventDefault());  // klaviatura yopilib qolmasin
+  b.onclick = () => {
+    const a = kirish.selectionStart ?? kirish.value.length, z = kirish.selectionEnd ?? kirish.value.length;
+    kirish.value = kirish.value.slice(0, a) + s + kirish.value.slice(z);
+    const p = a + s.length; kirish.focus(); kirish.setSelectionRange(p, p);
+  };
+  $("belgilar").appendChild(b);
+});
+
+// ---------- Ma'lumot oynasi ----------
+let malumotMatni = null;
+const ORNATISH = [
+  ["Telefonga o'rnatish\n", "b"],
+  ["Android (Chrome): ", "b"], ["menyu (⋮) → \"Ilovani o'rnatish\" yoki \"Bosh ekranga qo'shish\".\n", "n"],
+  ["iPhone (Safari): ", "b"], ["Ulashish tugmasi → \"Bosh ekranga qo'shish\".\n\n", "n"],
+  ["Internetsiz ishlashi\n", "b"],
+  ["Birinchi ochilishda kerakli fayllar (taxminan 30–40 MB) yuklab olinadi. Shundan keyin Axiom internetsiz, hatto samolyot rejimida ham ishlaydi.\n\n", "n"],
+  ["Maslahat\n", "b"],
+  ["Pastdagi belgilar qatori (^ ( ) / * ...) telefon klaviaturasida yo'q belgilarni kiritish uchun. Yuqoridagi rangli tugmalar tayyor namunalarni qo'yadi.\n", "n"]
+];
+function malumotChiz(nom) {
+  document.querySelectorAll("#malumot .tab").forEach((t) => t.classList.toggle("faol", t.dataset.tab === nom));
+  const ich = $("ichki"); ich.innerHTML = "";
+  const royxat = nom === "ornatish" ? ORNATISH : (malumotMatni ? malumotMatni[nom] : [["Yuklanmoqda…", "n"]]);
+  royxat.forEach(([matn, tag]) => { const s = document.createElement("span"); s.className = tag; s.textContent = matn; ich.appendChild(s); });
+  ich.scrollTop = 0;
+}
+async function malumotOch() {
+  $("malumot").classList.add("ochiq");
+  malumotChiz("qollanma");
+  if (!malumotMatni && tayyor) {
+    try { malumotMatni = JSON.parse(await hisobla("malumot", {})); malumotChiz("qollanma"); } catch (e) {}
+  }
+}
+$("info").onclick = malumotOch;
+$("yop").onclick = () => $("malumot").classList.remove("ochiq");
+document.querySelectorAll("#malumot .tab").forEach((t) => { t.onclick = () => malumotChiz(t.dataset.tab); });
+
+// ---------- Ishga tushirish ----------
+async function swTayyorla() {
+  if (!("serviceWorker" in navigator)) return;
+  try {
+    await navigator.serviceWorker.register("sw.js");
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) {
+      await new Promise((r) => { navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }); setTimeout(r, 3000); });
+    }
+  } catch (e) { /* xizmat oqimisiz ham ishlayveradi (faqat internetsiz emas) */ }
+}
+(async () => { await swTayyorla(); ishchiniBoshla(); })();
+</script>
+</body>
+</html>
