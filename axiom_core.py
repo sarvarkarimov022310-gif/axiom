@@ -286,7 +286,13 @@ def matematikani_yech(matn):
             return "soddalashtir", str(sp.simplify(oqi(ifoda)))
         elif "=" in matn:
             chap, ong = matn.split("=")
-            natija = sp.solve(sp.Eq(oqi(chap), oqi(ong)), x)
+            L, R = oqi(chap), oqi(ong)
+            if not (L.free_symbols or R.free_symbols):
+                lv, rv = sp.simplify(L), sp.simplify(R)
+                if sp.simplify(lv - rv) == 0:
+                    return "tenglik", f"{lv} = {rv}: bu to'g'ri tenglik"
+                return "tenglik", f"{lv} \u2260 {rv}: bu noto'g'ri tenglik"
+            natija = sp.solve(sp.Eq(L, R), x)
             return "tenglama", str(natija)
         else:
             s = sp.simplify(oqi(matn))
@@ -310,6 +316,8 @@ def kirishni_normallashtir(matn):
     t = re.sub(r"\bln\(", "log(", t)
     for a, b in (("arcsin", "asin"), ("arccos", "acos"), ("arctan", "atan")):
         t = re.sub(r"\b" + a + r"\(", b + "(", t)
+    if re.fullmatch(r"[\d\s+\-*/().^%,:\u00f7\u00d7]+=\s*\??", t.strip()):
+        t = re.sub(r"=\s*\??\s*$", "", t.strip())
     return t
 
 AJRAT_SOZLAR = r"\b(ko'?paytuvchilarga|ko'?paytuvchilar|ko'?paytuvchi|ajratib|ajratish|ajrat|faktorlarga|faktor|factor|ber|ni)\b"

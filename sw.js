@@ -1,11 +1,12 @@
 // Axiom AI: internetsiz ishlash uchun xizmat oqimi (service worker).
 // Ilova fayllari va Pyodide (Python) fayllari birinchi yuklashdan keyin qurilmada saqlanadi.
+// qurilish belgisi: 2   (har yangilanishda shu raqamni oshiring: telefonlar yangilanish haqida xabar oladi; foydalanuvchiga ko'rinmaydi)
 const KESH = "axiom-v1";
 const ASOSIY = ["./", "./index.html", "./worker.js", "./axiom_core.py", "./manifest.webmanifest",
                 "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./favicon.png"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(KESH).then((c) => c.addAll(ASOSIY)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(KESH).then((c) => c.addAll(ASOSIY.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (e) => {

@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Axiom AI — Matematik yordamchi</title>
 <meta name="theme-color" content="#1b1d33" id="tema-rang">
 <meta name="description" content="Oflayn matematik yordamchi">
@@ -30,23 +30,30 @@
   --pembe: #a8328f; --qizil: #d20f39; --firoza: #0f8a8a; --toq: #c5cad8; --toq-hover: #b2b8ca;
   --gray: #5c6078; --plot-bg: #ffffff; --plot-grid: #dde1ee; --plot-axis: #5c6078;
 }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; margin: 0; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+html { height: 100%; overflow: hidden; overscroll-behavior: none; }
 body {
-  display: flex; flex-direction: column; height: 100dvh;
+  position: fixed; top: 0; left: 0; right: 0; height: var(--vh, 100dvh); margin: 0; overflow: hidden;
+  display: flex; flex-direction: column;
   background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
   color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   padding-top: env(safe-area-inset-top, 0px); overscroll-behavior: none;
 }
 header { display: flex; align-items: center; gap: 6px; padding: 8px 10px 6px; }
-header .nom { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; font-weight: 700; font-size: 17px; color: var(--kok); white-space: nowrap; }
-header .nom img { width: 28px; height: 28px; border-radius: 7px; }
-.tugma {
-  border: 0; border-radius: 8px; background: var(--toq); color: var(--text); font: 700 14px system-ui, sans-serif;
-  min-width: 38px; height: 38px; padding: 0 10px; cursor: pointer;
+header .nom { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; font-weight: 700; font-size: 17px; color: var(--kok); white-space: nowrap; overflow: hidden; }
+header .nom img { width: 30px; height: 30px; border-radius: 8px; flex: 0 0 auto; }
+.ik, .tugma {
+  border: 0; border-radius: 10px; background: var(--toq); color: var(--text); font: 700 14px system-ui, sans-serif; cursor: pointer;
 }
-.tugma:active { background: var(--toq-hover); }
-#chat { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding: 6px 0 10px; -webkit-overflow-scrolling: touch; }
+.ik { width: 40px; height: 40px; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.ik svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tugma { min-width: 40px; height: 40px; padding: 0 14px; }
+.ik:active, .tugma:active { background: var(--toq-hover); }
+.ik.faol, .tugma.faol { background: var(--kok); color: #fff; }
+@media (max-width: 349px) { header .nom span { display: none; } }
+body.klav header { padding-top: 4px; padding-bottom: 2px; }
+body.klav header .nom span { display: none; }
+#chat { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; padding: 6px 0 10px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .pufak {
   max-width: 90%; margin: 5px 10px; padding: 9px 13px 10px; border-radius: 14px; font-size: var(--fs);
   line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text;
@@ -62,8 +69,10 @@ header .nom img { width: 28px; height: 28px; border-radius: 7px; }
 .axiom.kutish .matn { color: var(--gray); font-style: italic; }
 canvas.graf { display: block; margin-top: 8px; border-radius: 8px; max-width: 100%; }
 #pastki { padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(0,0,0,0.12); }
+body.klav #pastki { padding-bottom: 8px; }
 #namunalar, #belgilar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: none; }
 #namunalar::-webkit-scrollbar, #belgilar::-webkit-scrollbar { display: none; }
+#namunalar.yopiq, body.klav #namunalar { display: none; }
 .chip { flex: 0 0 auto; border: 0; border-radius: 16px; padding: 7px 13px; font: 700 13px system-ui, sans-serif; color: #1e1e2e; cursor: pointer; }
 .chip:active { filter: brightness(1.15); }
 .belgi { flex: 0 0 auto; border: 0; border-radius: 8px; min-width: 40px; height: 36px; background: var(--toq); color: var(--text); font: 600 16px var(--mono); cursor: pointer; }
@@ -76,8 +85,15 @@ canvas.graf { display: block; margin-top: 8px; border-radius: 8px; max-width: 10
 #yubor { border: 0; border-radius: 12px; height: 46px; padding: 0 18px; background: var(--yashil); color: #1e1e2e; font: 700 15px system-ui, sans-serif; cursor: pointer; }
 :root[data-tema="light"] #yubor { color: #fff; }
 #yubor:disabled { opacity: 0.5; }
+/* yangilanish xabari va toast */
+#yangi { display: none; align-items: center; gap: 8px; margin: 0 8px 6px; padding: 8px 10px 8px 14px; border-radius: 12px; background: var(--kok); color: #fff; font-size: 14px; font-weight: 600; }
+#yangi.korinadi { display: flex; }
+#yangi span { flex: 1; }
+#yangi button { border: 0; border-radius: 8px; background: rgba(255,255,255,0.25); color: #fff; font: 700 13px system-ui, sans-serif; height: 32px; padding: 0 12px; cursor: pointer; }
+#toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); max-width: 86%; z-index: 80; background: rgba(20,20,30,0.92); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; line-height: 1.4; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+#toast.korinadi { opacity: 1; }
 /* yuklanish oynasi */
-#yuklash { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom)); padding: 24px; text-align: center; }
+#yuklash { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom)); padding: 24px; text-align: center; }
 #yuklash img { width: 96px; height: 96px; border-radius: 22px; }
 #yuklash h1 { margin: 0; font-size: 30px; color: var(--kok); }
 #yuklash .osti { color: var(--gray); font-size: 15px; }
@@ -85,17 +101,38 @@ canvas.graf { display: block; margin-top: 8px; border-radius: 8px; max-width: 10
 .chiziq i { display: block; height: 100%; width: 10%; background: var(--yashil); border-radius: 4px; transition: width 0.6s ease; }
 #yuklash .holat { font-size: 15px; min-height: 1.4em; }
 #yuklash .eslatma { color: var(--gray); font-size: 13px; max-width: 320px; line-height: 1.4; }
-#yuklash button { margin-top: 6px; }
-/* ma'lumot oynasi */
-#malumot { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; background: var(--bg-top); padding-top: env(safe-area-inset-top, 0px); }
-#malumot.ochiq { display: flex; }
-#malumot .tepa { display: flex; gap: 6px; padding: 8px 10px; overflow-x: auto; align-items: center; }
-#malumot .tepa .yop { margin-left: auto; }
-#malumot .tab { flex: 0 0 auto; }
-#malumot .tab.faol { background: var(--kok); color: #fff; }
-#malumot .ichki { flex: 1; overflow-y: auto; padding: 8px 16px calc(20px + env(safe-area-inset-bottom, 0px)); font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
-#malumot .b { color: var(--kok); font-weight: 700; }
-#malumot .k { color: var(--sariq); font-family: var(--mono); font-size: 14px; }
+/* to'liq sahifa oynalari (Ma'lumot, Tarix) */
+.sahifa { position: fixed; inset: 0; z-index: 40; display: none; flex-direction: column; background: var(--bg-top); padding-top: env(safe-area-inset-top, 0px); }
+.sahifa.ochiq { display: flex; }
+.sahifa .tepa { display: flex; gap: 6px; padding: 8px 10px; overflow-x: auto; align-items: center; scrollbar-width: none; }
+.sahifa .tepa::-webkit-scrollbar { display: none; }
+.sahifa .tepa .oxir { margin-left: auto; flex: 0 0 auto; }
+.sahifa .tab { flex: 0 0 auto; }
+.sahifa .sarl { flex: 1; font-weight: 700; font-size: 17px; color: var(--kok); padding-left: 4px; }
+.sahifa .ichki { flex: 1; overflow-y: auto; padding: 8px 16px calc(20px + env(safe-area-inset-bottom, 0px)); font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; overscroll-behavior: contain; }
+.sahifa .b { color: var(--kok); font-weight: 700; }
+.sahifa .k { color: var(--sariq); font-family: var(--mono); font-size: 14px; }
+.tarix-el { display: block; width: 100%; text-align: left; border: 0; border-radius: 10px; background: var(--panel); color: var(--text); padding: 10px 13px; margin: 0 0 8px; cursor: pointer; font: inherit; }
+.tarix-el:active { background: var(--toq); }
+.tarix-el b { display: block; color: var(--kok); font-family: var(--mono); font-size: 14px; overflow-wrap: anywhere; }
+.tarix-el span { display: block; color: var(--sariq); font-family: var(--mono); font-size: 13px; margin-top: 3px; overflow-wrap: anywhere; }
+.bosh { color: var(--gray); padding: 12px 2px; }
+#tarixIchki { white-space: normal; }
+/* sozlamalar (pastdan chiqadigan oyna) */
+.qatlam { position: fixed; inset: 0; z-index: 45; display: none; }
+.qatlam.ochiq { display: block; }
+.qatlam .fon { position: absolute; inset: 0; background: rgba(0,0,0,0.5); }
+.varaq { position: absolute; left: 0; right: 0; bottom: 0; max-height: 88%; overflow-y: auto; background: var(--bg-top); border-radius: 20px 20px 0 0; padding: 10px 16px calc(18px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -6px 24px rgba(0,0,0,0.35); }
+.varaq .tutqich { width: 44px; height: 5px; border-radius: 3px; background: var(--toq); margin: 0 auto 10px; }
+.varaq h2 { margin: 0 0 8px; font-size: 18px; color: var(--kok); }
+.bolim { margin: 14px 0; }
+.bolim .sarlavha { font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+.qator2 { display: flex; gap: 8px; align-items: center; }
+.qator2 .tugma { flex: 1; }
+#sNamuna { flex: 2; text-align: center; font-family: var(--mono); font-size: var(--fs); padding: 6px 4px; border-radius: 10px; background: var(--panel); overflow: hidden; white-space: nowrap; }
+.keng { display: block; width: 100%; margin-bottom: 8px; text-align: left; }
+.xavf { background: transparent; color: var(--qizil); border: 1.5px solid var(--qizil); text-align: center; }
+.xavf.tasdiq { background: var(--qizil); color: #fff; }
 </style>
 </head>
 <body>
@@ -111,14 +148,15 @@ canvas.graf { display: block; margin-top: 8px; border-radius: 8px; max-width: 10
 
 <header>
   <div class="nom"><img src="icon-192.png" alt=""><span>Axiom AI</span></div>
-  <button class="tugma" id="kichik" title="Yozuvni kichraytirish">A-</button>
-  <button class="tugma" id="katta" title="Yozuvni kattalashtirish">A+</button>
-  <button class="tugma" id="tema" title="Yorug' / qorong'u">☀</button>
-  <button class="tugma" id="info" title="Ma'lumot">ⓘ</button>
-  <button class="tugma" id="tozala" title="Chatni tozalash">✕</button>
+  <button class="ik" id="tarix" aria-label="Tarix" title="Tarix"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
+  <button class="ik" id="amalBtn" aria-label="Amallar" title="Amallar"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg></button>
+  <button class="ik" id="sozBtn" aria-label="Sozlamalar" title="Sozlamalar"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+  <button class="ik" id="info" aria-label="Ma'lumot" title="Ma'lumot"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></button>
 </header>
 
 <div id="chat" aria-live="polite"></div>
+
+<div id="yangi"><span>Yangi versiya tayyor</span><button id="yangilaBtn">Yangilash</button><button id="yangiYop" aria-label="Yopish">✕</button></div>
 
 <div id="pastki">
   <div id="namunalar"></div>
@@ -129,16 +167,59 @@ canvas.graf { display: block; margin-top: 8px; border-radius: 8px; max-width: 10
   </div>
 </div>
 
-<div id="malumot">
+<div id="malumot" class="sahifa">
   <div class="tepa">
+    <button class="ik orqaga" aria-label="Ortga"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button class="tugma tab faol" data-tab="qollanma">Qo'llanma</button>
     <button class="tugma tab" data-tab="imkoniyatlar">Imkoniyatlar</button>
     <button class="tugma tab" data-tab="haqida">Dastur haqida</button>
     <button class="tugma tab" data-tab="ornatish">O'rnatish</button>
-    <button class="tugma yop" id="yop">Yopish</button>
   </div>
   <div class="ichki" id="ichki"></div>
 </div>
+
+<div id="tarixOyna" class="sahifa">
+  <div class="tepa">
+    <button class="ik orqaga" aria-label="Ortga"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="sarl">Yechilgan misollar</div>
+    <button class="tugma oxir" id="tarixTozala">Tarixni tozalash</button>
+  </div>
+  <div class="ichki" id="tarixIchki"></div>
+</div>
+
+<div id="sozOyna" class="qatlam">
+  <div class="fon" id="sozFon"></div>
+  <div class="varaq">
+    <div class="tutqich"></div>
+    <h2>Sozlamalar</h2>
+    <div class="bolim">
+      <div class="sarlavha">Yozuv kattaligi</div>
+      <div class="qator2">
+        <button class="tugma" id="sKichik">A-</button>
+        <div id="sNamuna">x² − 5x + 6 = 0</div>
+        <button class="tugma" id="sKatta">A+</button>
+      </div>
+      <div class="qator2" style="margin-top:8px"><button class="tugma" id="sAsl">Asl holiga</button></div>
+    </div>
+    <div class="bolim">
+      <div class="sarlavha">Mavzu</div>
+      <div class="qator2">
+        <button class="tugma" id="tYorug">Yorug'</button>
+        <button class="tugma" id="tQorong">Qorong'u</button>
+      </div>
+    </div>
+    <div class="bolim">
+      <div class="sarlavha">Ilova</div>
+      <button class="tugma keng" id="sOrnat">Ilovani o'rnatish</button>
+      <button class="tugma keng" id="sUlash">Do'stlarga yuborish</button>
+    </div>
+    <div class="bolim">
+      <button class="tugma keng xavf" id="sTozala">Chatni tozalash</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
 
 <script>
 "use strict";
@@ -153,6 +234,7 @@ const NAMUNALAR = [
 ];
 const BELGILAR = ["^", "(", ")", "/", "*", "+", "-", "=", "x", "y", "%", ".", ",", ":", "[", "]", "<", ">", "sqrt(", "pi"];
 const HISOBLASH_VAQTI = 30000;
+const ASL_SHRIFT = 16;
 
 const $ = (id) => document.getElementById(id);
 const chat = $("chat"), kirish = $("kirish"), yubor = $("yubor");
@@ -162,30 +244,61 @@ const kutayotgan = new Map();
 function saqla(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 function oqi(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 
+let toastTaymer = null;
+function toast(matn) {
+  const t = $("toast"); t.textContent = matn; t.classList.add("korinadi");
+  clearTimeout(toastTaymer); toastTaymer = setTimeout(() => t.classList.remove("korinadi"), 3200);
+}
+
+// ---------- Chat pastiga surish ----------
+function pastga() { chat.scrollTop = chat.scrollHeight; }
+function pastgaKech() { pastga(); requestAnimationFrame(pastga); setTimeout(pastga, 120); setTimeout(pastga, 350); }
+
+// ---------- Klaviatura: oyna balandligi klaviatura bilan birga o'zgaradi ----------
+const vv = window.visualViewport;
+let asosH = 0, asosW = 0, klavOchiq = false;
+function oynaniMosla() {
+  const h = vv ? vv.height : window.innerHeight, w = vv ? vv.width : window.innerWidth;
+  if (Math.abs(w - asosW) > 40) { asosW = w; asosH = h; }
+  if (h > asosH) asosH = h;
+  const klav = asosH - h > 120;
+  document.documentElement.style.setProperty("--vh", Math.round(h) + "px");
+  document.body.style.top = (vv ? Math.round(vv.offsetTop) : 0) + "px";
+  document.body.classList.toggle("klav", klav);
+  if (klav !== klavOchiq) { klavOchiq = klav; pastgaKech(); }
+}
+if (vv) { vv.addEventListener("resize", oynaniMosla); vv.addEventListener("scroll", oynaniMosla); }
+window.addEventListener("resize", oynaniMosla);
+kirish.addEventListener("focus", () => { setTimeout(() => { window.scrollTo(0, 0); oynaniMosla(); pastgaKech(); }, 250); });
+oynaniMosla();
+
 // ---------- Mavzu va yozuv kattaligi ----------
-function temaQo_y(t) {
+function temaQo_y(t, saqlash) {
   if (t === "light") document.documentElement.setAttribute("data-tema", "light");
   else document.documentElement.removeAttribute("data-tema");
-  $("tema").textContent = t === "light" ? "☾" : "☀";
   $("tema-rang").setAttribute("content", t === "light" ? "#e8ecf6" : "#1b1d33");
-  saqla("axiom_tema", t);
+  $("tYorug").classList.toggle("faol", t === "light");
+  $("tQorong").classList.toggle("faol", t !== "light");
+  if (saqlash !== false) saqla("axiom_tema", t);
   document.querySelectorAll("canvas.graf").forEach((c) => { if (c._g) grafikChiz(c, c._g); });
 }
-let shrift = parseInt(oqi("axiom_shrift") || "16", 10);
+let shrift = parseInt(oqi("axiom_shrift") || String(ASL_SHRIFT), 10);
 function shriftQo_y(v) {
   shrift = Math.max(12, Math.min(26, v));
   document.documentElement.style.setProperty("--fs", shrift + "px");
   saqla("axiom_shrift", String(shrift));
 }
-temaQo_y(oqi("axiom_tema") === "light" ? "light" : "dark");
+const saqlanganTema = oqi("axiom_tema");
+const qurilmaYorug = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+temaQo_y(saqlanganTema ? (saqlanganTema === "light" ? "light" : "dark") : (qurilmaYorug ? "light" : "dark"), false);
 shriftQo_y(shrift);
-$("tema").onclick = () => temaQo_y(document.documentElement.getAttribute("data-tema") === "light" ? "dark" : "light");
-$("kichik").onclick = () => shriftQo_y(shrift - 2);
-$("katta").onclick = () => shriftQo_y(shrift + 2);
+$("tYorug").onclick = () => temaQo_y("light");
+$("tQorong").onclick = () => temaQo_y("dark");
+$("sKichik").onclick = () => shriftQo_y(shrift - 2);
+$("sKatta").onclick = () => shriftQo_y(shrift + 2);
+$("sAsl").onclick = () => shriftQo_y(ASL_SHRIFT);
 
 // ---------- Chat ----------
-function pastga() { chat.scrollTop = chat.scrollHeight; }
-
 function xabarQo_sh(kim, matn, tur) {
   const d = document.createElement("div");
   d.className = "pufak " + (kim === "Siz" ? "siz" : "axiom " + (tur || "suhbat"));
@@ -241,7 +354,7 @@ function grafikQo_sh(pufak, g) {
   cnv._g = g;
   pufak.appendChild(cnv);
   grafikChiz(cnv, g);
-  pastga();
+  pastgaKech();
 }
 
 function xabarlarniKo_rsat(xabarlar) {
@@ -297,7 +410,7 @@ $("qayta").onclick = () => location.reload();
 async function tayyorBo_ldi() {
   tayyor = true; yubor.disabled = false;
   holatKo_rsat("Tayyor", 100);
-  setTimeout(() => { $("yuklash").style.display = "none"; kirish.focus({ preventScroll: true }); }, 250);
+  setTimeout(() => { $("yuklash").style.display = "none"; }, 250);
   if (qaytaIshga) {
     qaytaIshga = false;
     xabarQo_sh("Axiom", "Axiom yana tayyor. Davom etamiz!", "suhbat");
@@ -317,39 +430,43 @@ async function xabarYubor() {
   try {
     const natija = await hisobla("javob", { matn });
     kutish.remove();
-    xabarlarniKo_rsat(JSON.parse(natija));
+    const xabarlar = JSON.parse(natija);
+    xabarlarniKo_rsat(xabarlar);
+    const asosiy = xabarlar.find((m) => m.tur === "natija" || m.grafik);
+    if (asosiy) {
+      const q = asosiy.grafik ? ["grafik chizildi"] : asosiy.matn.split("\n");
+      tarixgaQo_sh(matn, q[q.length - 1].slice(0, 100));
+    }
   } catch (e) {
     kutish.remove();
     if (e.message === "vaqt") {
       xabarQo_sh("Axiom", "Bu misol juda uzoq hisoblandi, to'xtatdim. Soddaroq ko'rinishda yozib ko'ring. Qayta ishga tushyapman…", "xato");
       qaytaIshga = true;
       ishchiniBoshla();
-      yuklashniYashir();
       return;
     }
     xabarQo_sh("Axiom", "Kechirasiz, bu misolni hisoblay olmadim.", "xato");
   }
   yubor.disabled = !tayyor;
-  kirish.focus({ preventScroll: true });
+  pastgaKech();
 }
-// qayta ishga tushirishda to'liq ekranli yuklash oynasini ko'rsatmaymiz
-function yuklashniYashir() { $("yuklash").style.display = "none"; }
 
 yubor.onclick = xabarYubor;
 kirish.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); xabarYubor(); } });
-$("tozala").onclick = () => { chat.innerHTML = ""; };
+yubor.addEventListener("pointerdown", (e) => e.preventDefault());  // klaviatura yopilib qolmasin
 
-// ---------- Namunalar va belgilar paneli ----------
+// ---------- Namunalar (Amallar) va belgilar paneli ----------
 NAMUNALAR.forEach(([nom, namuna, rang]) => {
   const b = document.createElement("button");
   b.className = "chip"; b.textContent = nom; b.style.background = rang;
+  b.addEventListener("pointerdown", (e) => e.preventDefault());
   b.onclick = () => { kirish.value = namuna; kirish.focus(); };
   $("namunalar").appendChild(b);
 });
 BELGILAR.forEach((s) => {
   const b = document.createElement("button");
   b.className = "belgi"; b.textContent = s;
-  b.addEventListener("pointerdown", (e) => e.preventDefault());  // klaviatura yopilib qolmasin
+  b.addEventListener("pointerdown", (e) => e.preventDefault());
   b.onclick = () => {
     const a = kirish.selectionStart ?? kirish.value.length, z = kirish.selectionEnd ?? kirish.value.length;
     kirish.value = kirish.value.slice(0, a) + s + kirish.value.slice(z);
@@ -357,17 +474,71 @@ BELGILAR.forEach((s) => {
   };
   $("belgilar").appendChild(b);
 });
+function amallarQo_y(och) {
+  $("namunalar").classList.toggle("yopiq", !och);
+  $("amalBtn").classList.toggle("faol", och);
+  saqla("axiom_amallar", och ? "1" : "0");
+  pastgaKech();
+}
+const saqlanganAmal = oqi("axiom_amallar");
+amallarQo_y(saqlanganAmal === null ? true : saqlanganAmal === "1");
+$("amalBtn").onclick = () => amallarQo_y($("namunalar").classList.contains("yopiq"));
 
-// ---------- Ma'lumot oynasi ----------
+// ---------- Oynalar: ochish va ortga (telefonning ortga tugmasi ham yopadi) ----------
+let ochiqOyna = null;
+function oynaOch(id) {
+  if (ochiqOyna) $(ochiqOyna).classList.remove("ochiq");
+  $(id).classList.add("ochiq");
+  ochiqOyna = id;
+  try { history.pushState({ oyna: id }, ""); } catch (e) {}
+}
+function oynaYop() {
+  if (!ochiqOyna) return;
+  $(ochiqOyna).classList.remove("ochiq");
+  ochiqOyna = null;
+}
+function orqaga() {
+  if (!ochiqOyna) return;
+  if (history.state && history.state.oyna) history.back(); else oynaYop();
+}
+window.addEventListener("popstate", oynaYop);
+document.querySelectorAll(".orqaga").forEach((b) => { b.onclick = orqaga; });
+$("sozFon").onclick = orqaga;
+
+// ---------- Tarix ----------
+let tarix = [];
+try { tarix = JSON.parse(oqi("axiom_tarix") || "[]"); } catch (e) { tarix = []; }
+function tarixgaQo_sh(savol, javob) {
+  tarix = tarix.filter((t) => t.s !== savol);
+  tarix.unshift({ s: savol, j: javob });
+  tarix = tarix.slice(0, 60);
+  saqla("axiom_tarix", JSON.stringify(tarix));
+}
+function tarixChiz() {
+  const ich = $("tarixIchki"); ich.innerHTML = "";
+  if (!tarix.length) { const d = document.createElement("div"); d.className = "bosh"; d.textContent = "Hali yechilgan misol yo'q."; ich.appendChild(d); return; }
+  tarix.forEach((t) => {
+    const b = document.createElement("button"); b.className = "tarix-el";
+    const s1 = document.createElement("b"); s1.textContent = t.s;
+    const s2 = document.createElement("span"); s2.textContent = t.j;
+    b.appendChild(s1); b.appendChild(s2);
+    b.onclick = () => { orqaga(); kirish.value = t.s; setTimeout(() => kirish.focus(), 60); };
+    ich.appendChild(b);
+  });
+}
+$("tarix").onclick = () => { tarixChiz(); oynaOch("tarixOyna"); };
+$("tarixTozala").onclick = () => { tarix = []; saqla("axiom_tarix", "[]"); tarixChiz(); };
+
+// ---------- Ma'lumot ----------
 let malumotMatni = null;
 const ORNATISH = [
   ["Telefonga o'rnatish\n", "b"],
-  ["Android (Chrome): ", "b"], ["menyu (⋮) → \"Ilovani o'rnatish\" yoki \"Bosh ekranga qo'shish\".\n", "n"],
+  ["Android (Chrome): ", "b"], ["Sozlamalardagi \"Ilovani o'rnatish\" tugmasi yoki menyu (⋮) → \"Ilovani o'rnatish\".\n", "n"],
   ["iPhone (Safari): ", "b"], ["Ulashish tugmasi → \"Bosh ekranga qo'shish\".\n\n", "n"],
   ["Internetsiz ishlashi\n", "b"],
   ["Birinchi ochilishda kerakli fayllar (taxminan 30–40 MB) yuklab olinadi. Shundan keyin Axiom internetsiz, hatto samolyot rejimida ham ishlaydi.\n\n", "n"],
   ["Maslahat\n", "b"],
-  ["Pastdagi belgilar qatori (^ ( ) / * ...) telefon klaviaturasida yo'q belgilarni kiritish uchun. Yuqoridagi rangli tugmalar tayyor namunalarni qo'yadi.\n", "n"]
+  ["Pastdagi belgilar qatori (^ ( ) / * ...) telefon klaviaturasida yo'q belgilarni kiritish uchun. Amallar tugmasi (▦) tayyor namunalarni ochadi va yopadi.\n", "n"]
 ];
 function malumotChiz(nom) {
   document.querySelectorAll("#malumot .tab").forEach((t) => t.classList.toggle("faol", t.dataset.tab === nom));
@@ -377,21 +548,70 @@ function malumotChiz(nom) {
   ich.scrollTop = 0;
 }
 async function malumotOch() {
-  $("malumot").classList.add("ochiq");
+  oynaOch("malumot");
   malumotChiz("qollanma");
   if (!malumotMatni && tayyor) {
     try { malumotMatni = JSON.parse(await hisobla("malumot", {})); malumotChiz("qollanma"); } catch (e) {}
   }
 }
 $("info").onclick = malumotOch;
-$("yop").onclick = () => $("malumot").classList.remove("ochiq");
 document.querySelectorAll("#malumot .tab").forEach((t) => { t.onclick = () => malumotChiz(t.dataset.tab); });
+
+// ---------- Sozlamalar oynasi ----------
+$("sozBtn").onclick = () => oynaOch("sozOyna");
+
+let ornatishSoraydi = null;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); ornatishSoraydi = e; });
+window.addEventListener("appinstalled", () => { ornatishSoraydi = null; toast("Ilova o'rnatildi"); });
+const standalone = () => (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+$("sOrnat").onclick = async () => {
+  if (standalone()) { toast("Ilova allaqachon o'rnatilgan"); return; }
+  if (ornatishSoraydi) {
+    ornatishSoraydi.prompt();
+    try { await ornatishSoraydi.userChoice; } catch (e) {}
+    ornatishSoraydi = null;
+    return;
+  }
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) toast("Ulashish tugmasi → \"Bosh ekranga qo'shish\" ni bosing");
+  else toast("Brauzer menyusidan (⋮) \"Ilovani o'rnatish\" ni tanlang");
+};
+$("sUlash").onclick = async () => {
+  const url = location.href.split("#")[0];
+  const malumot = { title: "Axiom AI", text: "Axiom AI — internetsiz ishlaydigan matematik yordamchi", url };
+  if (navigator.share) { try { await navigator.share(malumot); } catch (e) {} return; }
+  try { await navigator.clipboard.writeText(url); toast("Havola nusxalandi"); } catch (e) { toast(url); }
+};
+let tozalaTaymer = null;
+$("sTozala").onclick = () => {
+  const b = $("sTozala");
+  if (b.classList.contains("tasdiq")) {
+    clearTimeout(tozalaTaymer);
+    b.classList.remove("tasdiq"); b.textContent = "Chatni tozalash";
+    chat.innerHTML = "";
+    orqaga();
+    toast("Chat tozalandi");
+  } else {
+    b.classList.add("tasdiq"); b.textContent = "Aniqmi? Tozalash uchun yana bosing";
+    tozalaTaymer = setTimeout(() => { b.classList.remove("tasdiq"); b.textContent = "Chatni tozalash"; }, 4000);
+  }
+};
+
+// ---------- Yangilanish xabari (versiya raqami ko'rsatilmaydi) ----------
+function yangilanishXabari() { $("yangi").classList.add("korinadi"); pastgaKech(); }
+$("yangilaBtn").onclick = () => location.reload();
+$("yangiYop").onclick = () => $("yangi").classList.remove("korinadi");
 
 // ---------- Ishga tushirish ----------
 async function swTayyorla() {
   if (!("serviceWorker" in navigator)) return;
   try {
-    await navigator.serviceWorker.register("sw.js");
+    let oldingi = navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (oldingi) yangilanishXabari();
+      oldingi = navigator.serviceWorker.controller;
+    });
+    const reg = await navigator.serviceWorker.register("sw.js");
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reg.update().catch(() => {}); });
     await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) {
       await new Promise((r) => { navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }); setTimeout(r, 3000); });
